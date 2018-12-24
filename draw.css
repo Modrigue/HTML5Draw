@@ -1,0 +1,58 @@
+canvas {
+	cursor: none;
+}
+
+canvas.dragging {
+	cursor: none;
+}
+
+.button {
+	background-color: white;
+    border: none;
+    color: black;
+    padding:5px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+	-webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.3s;
+    cursor: pointer;
+}
+
+.button:hover {
+    /*background-color: #008CBA;*/
+	background-color: #00AEDC;
+    color: white;
+}
+
+.button:active {
+    background-color: #008CBA;
+	/*background-color: #008CBA;*/
+    color: white;
+}
+
+.color_button {
+	background-color: white;
+	/*border: 2px solid #4CAF50;*/ /* Green */
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+.combo_box {
+	background-color: white;
+	border: 1px solid #bbbbbb;
+    /*border: none;*/
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    cursor: pointer;
+}
