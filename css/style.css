@@ -6,6 +6,11 @@ canvas.dragging {
 	cursor: none;
 }
 
+input
+{
+    cursor: pointer;
+}
+
 .button {
 	background-color: white;
     border: none;
