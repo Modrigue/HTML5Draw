@@ -168,7 +168,7 @@ function cursorDrawStipple(context_draw: CanvasRenderingContext2D, canvas_draw: 
 }
 
 // fill cursor (cross)
-function cursorDrawFill(context_draw: CanvasRenderingContext2D, canvas_draw: ImageBitmap, xCurr: number, yCurr: number, forecolor: string)
+function cursorDrawFill(context_draw: CanvasRenderingContext2D, canvas_draw: HTMLCanvasElement, xCurr: number, yCurr: number, forecolor: string)
 {
     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
     context_draw.strokeStyle = forecolor;
