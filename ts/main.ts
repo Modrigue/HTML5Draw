@@ -3,6 +3,11 @@
  * http://www.robodesign.ro
  */
 
+import * as PixelFunctions from "./utils/utils_pixel.js";
+import * as MathFunctions from "./utils/utils_math.js";
+import * as ImageFunctions from "./utils/utils_image.js";
+import * as CursorFunctions from "./utils/utils_cursor.js";
+
 // Keep everything in anonymous function, called on window load.
 if (window.addEventListener)
 {
@@ -33,7 +38,15 @@ if (window.addEventListener)
         var forecolor_default = '#880088';
         var backcolor_default = '#ffffff';
         var forecolor_cycle = new Array();
-        forecolor_cycle = [pixelHexToRGB(forecolor_default), pixelHexToRGB('#992299'), pixelHexToRGB('#aa44aa'), pixelHexToRGB('#bb66bb'), pixelHexToRGB('#cc88cc'), pixelHexToRGB('#ddaadd'), pixelHexToRGB('#eeccee'), pixelHexToRGB('#ffeeff')];
+        forecolor_cycle = [
+            PixelFunctions.pixelHexToRGB(forecolor_default),
+            PixelFunctions.pixelHexToRGB('#992299'),
+            PixelFunctions.pixelHexToRGB('#aa44aa'),
+            PixelFunctions.pixelHexToRGB('#bb66bb'),
+            PixelFunctions.pixelHexToRGB('#cc88cc'),
+            PixelFunctions.pixelHexToRGB('#ddaadd'),
+            PixelFunctions.pixelHexToRGB('#eeccee'),
+            PixelFunctions.pixelHexToRGB('#ffeeff')];
         
         let color_cycle_active: boolean = false;
         let color_cycle_timer: number;
@@ -337,7 +350,7 @@ if (window.addEventListener)
                 //	break;
                 case "N":
                     // negative image test
-                    imgInvert(context_img, canvas_img);
+                    ImageFunctions.imgInvert(context_img, canvas_img);
                     break;
                 case "A":
                     // toggle color cycle animation
@@ -442,7 +455,7 @@ if (window.addEventListener)
                 this.hasClicked = true;
                 
                 // draw cursor
-                cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry, true /*stroke*/);
+                CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry, true /*stroke*/);
                 this.hasDrawnCursor = true;
             },
 
@@ -462,7 +475,7 @@ if (window.addEventListener)
                 // show cursor
                 if (!this.hasClicked)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 else
@@ -595,7 +608,7 @@ if (window.addEventListener)
                 // show cursor
                 if (!this.hasClicked)
                 {
-                    cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 else
@@ -696,7 +709,7 @@ if (window.addEventListener)
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -826,7 +839,7 @@ if (window.addEventListener)
                 // show cursor if no click and no point set
                 if (!this.hasClicked && this.points.length == 0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -985,7 +998,7 @@ if (window.addEventListener)
                 // show cursor if no click and no point set
                 if (!this.hasClicked && this.points.length == 0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -1149,7 +1162,7 @@ if (window.addEventListener)
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -1266,7 +1279,7 @@ if (window.addEventListener)
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -1382,7 +1395,7 @@ if (window.addEventListener)
                 // show cursor if no click and no point set
                 if (!this.hasClicked && this.points.length == 0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -1548,7 +1561,7 @@ if (window.addEventListener)
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -1558,7 +1571,7 @@ if (window.addEventListener)
 
                 context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
 
-                var radius = Math.sqrt((this.x0 - this.xCurr)*(this.x0 - this.xCurr) + (this.y0 - this.yCurr)*(this.y0 - this.yCurr));
+                const radius: number = MathFunctions.distance(this.x0, this.y0, this.xCurr, this.yCurr);
                 for (let i = -cursorsize/2; i <= cursorsize/2; i++)
                 {
                     // mouse position
@@ -1677,7 +1690,7 @@ if (window.addEventListener)
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -1687,7 +1700,7 @@ if (window.addEventListener)
 
                 context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
 
-                const radius: number = Math.sqrt((this.x0 - this.xCurr)*(this.x0 - this.xCurr) + (this.y0 - this.yCurr)*(this.y0 - this.yCurr));
+                const radius: number = MathFunctions.distance(this.x0, this.y0, this.xCurr, this.yCurr);
                 for (let i = -cursorsize/2; i <= cursorsize/2; i++)
                 {
                     // mouse position
@@ -1811,7 +1824,7 @@ if (window.addEventListener)
                 // show cursor if no click and first point not set
                 if (!this.hasClicked && this.nbPointsClicked == 0)
                 {
-                    cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                     return;
                 }
                 
@@ -1966,7 +1979,7 @@ if (window.addEventListener)
             mousemove(ev: MouseEvent): void
             {
                 [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
-                cursorDrawFill(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor);
+                CursorFunctions.cursorDrawFill(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor);
                 
                 // TODO: handle mirroring?
             },
@@ -1977,7 +1990,7 @@ if (window.addEventListener)
                 {
                     this.hasClicked = false;
                     [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
-                    imgFill4(context_img, canvas_img, this.xCurr, this.yCurr, forecolor);
+                    ImageFunctions.imgFill4(context_img, canvas_img, this.xCurr, this.yCurr, forecolor);
                 }
             },
         
@@ -2021,8 +2034,8 @@ if (window.addEventListener)
                 {
                     for (var i = 0; i < nbColors; i++)
                     {
-                        if (pixelHasColor(pix, w, x, y, forecolor_cycle[i]))
-                            pixelSetColor(pix_cycle, w, x, y, forecolor_cycle[(i + 1) % nbColors]);
+                        if (PixelFunctions.pixelHasColor(pix, w, x, y, forecolor_cycle[i]))
+                            PixelFunctions.pixelSetColor(pix_cycle, w, x, y, forecolor_cycle[(i + 1) % nbColors]);
                     }
                 }
             }

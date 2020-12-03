@@ -1,7 +1,6 @@
-"use strict";
 // Cursor functions
 // normal cursor
-function cursorDraw(context_draw, canvas_draw, xCurr, yCurr, forecolor, cursorSize, symmetry, isStroke = false) {
+export function cursorDraw(context_draw, canvas_draw, xCurr, yCurr, forecolor, cursorSize, symmetry, isStroke = false) {
     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
     context_draw.strokeStyle = forecolor;
     let symcolor = '#aaaaaa';
@@ -126,7 +125,7 @@ function cursorDraw(context_draw, canvas_draw, xCurr, yCurr, forecolor, cursorSi
     }
 }
 // stipple cursor (circle)
-function cursorDrawStipple(context_draw, canvas_draw, xCurr, yCurr, forecolor, cursorSize, symmetry) {
+export function cursorDrawStipple(context_draw, canvas_draw, xCurr, yCurr, forecolor, cursorSize, symmetry) {
     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
     context_draw.strokeStyle = forecolor;
     let symcolor = '#aaaaaa';
@@ -172,7 +171,7 @@ function cursorDrawStipple(context_draw, canvas_draw, xCurr, yCurr, forecolor, c
     }
 }
 // fill cursor (cross)
-function cursorDrawFill(context_draw, canvas_draw, xCurr, yCurr, forecolor) {
+export function cursorDrawFill(context_draw, canvas_draw, xCurr, yCurr, forecolor) {
     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
     context_draw.strokeStyle = forecolor;
     context_draw.beginPath();

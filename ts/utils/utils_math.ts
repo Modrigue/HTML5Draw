@@ -1,20 +1,19 @@
 // Math functions
 
 // computes the distance between points (x1,y1) and (x2,y2)
-function distance(x1: number, y1: number, x2: number, y2: number): number
+export function distance(x1: number, y1: number, x2: number, y2: number): number
 {
     return Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
 }
 
 // computes the angle of (x,y) on a plane given the origin
-function getAngle(x: number, y: number): number
+export function getAngle(x: number, y: number): number
 {
     return Math.atan(y / (x==0 ? 0.01 : x)) + (x < 0 ? Math.PI : 0);
 }
 
 // circle from 3 points function
-
-function circle_from_points(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): [number, number, number]
+export function circle_from_points(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): [number, number, number]
 {
 	const det = det3(x1, y1, 1,  x2, y2, 1,  x3, y3, 1);
 	

@@ -1,7 +1,8 @@
-"use strict";
 // Image functions
+import * as PixelFunctions from "./utils_pixel.js";
+import * as MathFunctions from "./utils_math.js";
 // invert image (negative)
-function imgInvert(context_img, canvas_img) {
+export function imgInvert(context_img, canvas_img) {
     // get the CanvasPixelArray from the given coordinates and dimensions.
     var imgd = context_img.getImageData(0, 0, canvas_img.width, canvas_img.height);
     var pix = imgd.data;
@@ -17,16 +18,16 @@ function imgInvert(context_img, canvas_img) {
     context_img.putImageData(imgd, 0, 0);
 }
 // 4-connexity fill algorithm
-function imgFill4(context_img, canvas_img, x0, y0, forecolorStr) {
+export function imgFill4(context_img, canvas_img, x0, y0, forecolorStr) {
     // get fill color
-    const rgbFill = pixelHexToRGB(forecolorStr);
+    const rgbFill = PixelFunctions.pixelHexToRGB(forecolorStr);
     let imgd = context_img.getImageData(0, 0, canvas_img.width, canvas_img.height);
     let pix = imgd.data;
     let pixelsToFill = new Array();
     const w = canvas_img.width;
     const h = canvas_img.height;
     // get base color from pixel
-    var rgbBase = pixelGetColor(pix, w, x0, y0);
+    var rgbBase = PixelFunctions.pixelGetColor(pix, w, x0, y0);
     // nop if base color = fill color
     if (rgbBase[0] == rgbFill[0] && rgbBase[1] == rgbFill[1] && rgbBase[2] == rgbFill[2])
         return;
@@ -37,27 +38,27 @@ function imgFill4(context_img, canvas_img, x0, y0, forecolorStr) {
             break;
         let x = xy[0];
         let y = xy[1];
-        if (pixelHasColor(pix, w, x, y, rgbBase)) {
+        if (PixelFunctions.pixelHasColor(pix, w, x, y, rgbBase)) {
             // list all east to west pixels to fill
             let xW = x;
-            while (xW >= 0 && pixelHasColor(pix, w, xW, y, rgbBase))
+            while (xW >= 0 && PixelFunctions.pixelHasColor(pix, w, xW, y, rgbBase))
                 xW--;
             let xE = x;
-            while (xE < w && pixelHasColor(pix, w, xE, y, rgbBase))
+            while (xE < w && PixelFunctions.pixelHasColor(pix, w, xE, y, rgbBase))
                 xE++;
             // fill found east and west pixels and check north and south pixels
             for (var xCur = xW; xCur <= xE; xCur++) {
                 // fill
-                pixelSetColor(pix, w, xCur, y, rgbFill);
+                PixelFunctions.pixelSetColor(pix, w, xCur, y, rgbFill);
                 // check if north pixel must be processed
                 let yN = y - 1;
                 if (yN >= 0)
-                    if (pixelHasColor(pix, w, xCur, yN, rgbBase))
+                    if (PixelFunctions.pixelHasColor(pix, w, xCur, yN, rgbBase))
                         pixelsToFill.push([xCur, yN]);
                 // check if south pixel must be processed
                 let yS = y + 1;
                 if (yS < h)
-                    if (pixelHasColor(pix, w, xCur, yS, rgbBase))
+                    if (PixelFunctions.pixelHasColor(pix, w, xCur, yS, rgbBase))
                         pixelsToFill.push([xCur, yS]);
             }
         }
@@ -65,9 +66,9 @@ function imgFill4(context_img, canvas_img, x0, y0, forecolorStr) {
     context_img.putImageData(imgd, 0, 0);
 }
 // draw line with no aliasing
-function drawLineNoAliasing(ctx, sx, sy, tx, ty) {
-    const dist = distance(sx, sy, tx, ty); // length of line
-    const angle = getAngle(tx - sx, ty - sy); // angle of line
+export function drawLineNoAliasing(ctx, sx, sy, tx, ty) {
+    const dist = MathFunctions.distance(sx, sy, tx, ty); // length of line
+    const angle = MathFunctions.getAngle(tx - sx, ty - sy); // angle of line
     for (var i = 0; i < dist; i++) {
         // for each point along the line
         ctx.fillRect(Math.round(sx + Math.cos(angle) * i), // round for perfect pixels

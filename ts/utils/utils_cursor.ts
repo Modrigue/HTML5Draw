@@ -2,7 +2,7 @@
 
 
 // normal cursor
-function cursorDraw(context_draw: CanvasRenderingContext2D, canvas_draw: HTMLCanvasElement, xCurr: number, yCurr: number, forecolor: string, cursorSize: number, symmetry: string, isStroke: boolean = false)
+export function cursorDraw(context_draw: CanvasRenderingContext2D, canvas_draw: HTMLCanvasElement, xCurr: number, yCurr: number, forecolor: string, cursorSize: number, symmetry: string, isStroke: boolean = false)
 {
     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
 
@@ -112,7 +112,7 @@ function cursorDraw(context_draw: CanvasRenderingContext2D, canvas_draw: HTMLCan
 }
 
 // stipple cursor (circle)
-function cursorDrawStipple(context_draw: CanvasRenderingContext2D, canvas_draw: HTMLCanvasElement, xCurr: number, yCurr: number, forecolor: string, cursorSize: number, symmetry: string)
+export function cursorDrawStipple(context_draw: CanvasRenderingContext2D, canvas_draw: HTMLCanvasElement, xCurr: number, yCurr: number, forecolor: string, cursorSize: number, symmetry: string)
 {
     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
     
@@ -168,7 +168,7 @@ function cursorDrawStipple(context_draw: CanvasRenderingContext2D, canvas_draw: 
 }
 
 // fill cursor (cross)
-function cursorDrawFill(context_draw: CanvasRenderingContext2D, canvas_draw: HTMLCanvasElement, xCurr: number, yCurr: number, forecolor: string)
+export function cursorDrawFill(context_draw: CanvasRenderingContext2D, canvas_draw: HTMLCanvasElement, xCurr: number, yCurr: number, forecolor: string)
 {
     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
     context_draw.strokeStyle = forecolor;

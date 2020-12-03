@@ -1,7 +1,6 @@
-"use strict";
 // Pixel functions
 // conversion HEX <-> RGB
-function pixelHexToRGB(hexColorStr, opacity = -1) {
+export function pixelHexToRGB(hexColorStr, opacity = -1) {
     const hexValuesStr = hexColorStr.replace('#', '');
     const rValueStr = hexValuesStr.substring(0, 2);
     const gValueStr = hexValuesStr.substring(2, 4);
@@ -16,29 +15,29 @@ function pixelHexToRGB(hexColorStr, opacity = -1) {
     if (typeof opacity != 'undefined')  rgb.push(opacity);*/
     return [r, g, b];
 }
-function pixelRGBToHex(rgb) {
+export function pixelRGBToHex(rgb) {
     return "#" + ((1 << 24) + (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]).toString(16).slice(1);
 }
 // returns true if pixel (x,y) of image data <pix> with width <w> has color array [r,g,b]
-function pixelHasColor(pix, w, x, y, rgb) {
+export function pixelHasColor(pix, w, x, y, rgb) {
     const [rB, gB, bB] = pixelGetColor(pix, w, x, y);
     return (rgb[0] == rB && rgb[1] == gB && rgb[2] == bB);
 }
 // returns true if pixel (x,y) of image data <pix> with width <w> has hex color string
-function pixelHasHexColor(pix, w, x, y, hexColorStr) {
+export function pixelHasHexColor(pix, w, x, y, hexColorStr) {
     return pixelHasColor(pix, w, x, y, pixelHexToRGB(hexColorStr));
 }
 // get color of pixel (x,y) of image data <pix> with width <w>
-function pixelGetColor(pix, w, x, y) {
+export function pixelGetColor(pix, w, x, y) {
     return [pix[4 * (x + w * y)], pix[4 * (x + w * y) + 1], pix[4 * (x + w * y) + 2]];
 }
 // set color array [r,g,b] to pixel (x,y) of image data <pix> with width <w>
-function pixelSetColor(pix, w, x, y, rgb) {
+export function pixelSetColor(pix, w, x, y, rgb) {
     pix[4 * (x + w * y) + 0] = rgb[0];
     pix[4 * (x + w * y) + 1] = rgb[1];
     pix[4 * (x + w * y) + 2] = rgb[2];
 }
-function pixelSetHexColor(pix, w, x, y, colorStr) {
+export function pixelSetHexColor(pix, w, x, y, colorStr) {
     const rgb = pixelHexToRGB(colorStr, -1);
     pixelSetColor(pix, w, x, y, rgb);
 }
