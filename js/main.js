@@ -1506,4 +1506,4 @@ if (window.addEventListener) {
     }, false);
 }
 ////////////////////////////////// TOOL CLASSES ///////////////////////////////
-//# sourceMappingURL=draw.js.map
+//# sourceMappingURL=main.js.map
