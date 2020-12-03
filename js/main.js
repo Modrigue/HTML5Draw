@@ -655,7 +655,7 @@ if (window.addEventListener) {
                         || symmetry == "horizontal_vertical") {
                         context_draw.beginPath();
                         context_draw.moveTo(this.x0 + i, canvas_draw.height - this.y0 - i); // first point
-                        for (var j = 1; j < nbPoints; j++) {
+                        for (let j = 1; j < nbPoints; j++) {
                             const [xj, yj] = this.points[j];
                             context_draw.lineTo(xj + i, canvas_draw.height - yj - i); // 2nd to (n-1)th point(s)
                         }
@@ -667,7 +667,7 @@ if (window.addEventListener) {
                         || symmetry == "horizontal_vertical") {
                         context_draw.beginPath();
                         context_draw.moveTo(canvas_draw.width - this.x0 - i, canvas_draw.height - this.y0 - i); // first point
-                        for (var j = 1; j < nbPoints; j++) {
+                        for (let j = 1; j < nbPoints; j++) {
                             const [xj, yj] = this.points[j];
                             context_draw.lineTo(canvas_draw.width - xj - i, canvas_draw.height - yj - i); // 2nd to (n-1)th
                         }
@@ -780,7 +780,7 @@ if (window.addEventListener) {
                         || symmetry == "horizontal_vertical") {
                         context_draw.beginPath();
                         context_draw.moveTo(this.x0 + i, canvas_draw.height - this.y0 - i); // origin point
-                        for (var j = 1; j < nbPoints; j++) {
+                        for (let j = 1; j < nbPoints; j++) {
                             const [xj, yj] = this.points[j];
                             context_draw.lineTo(xj + i, canvas_draw.height - yj - i); // 1st to (n-1)th point(s)
                             context_draw.moveTo(this.x0 + i, canvas_draw.height - this.y0 - i); // back to origin point
@@ -793,7 +793,7 @@ if (window.addEventListener) {
                         || symmetry == "horizontal_vertical") {
                         context_draw.beginPath();
                         context_draw.moveTo(canvas_draw.width - this.x0 - i, canvas_draw.height - this.y0 - i); // origin point
-                        for (var j = 1; j < nbPoints; j++) {
+                        for (let j = 1; j < nbPoints; j++) {
                             const [xj, yj] = this.points[j];
                             context_draw.lineTo(canvas_draw.width - xj - i, canvas_draw.height - yj - i); // 1st to (n-1)th
                             context_draw.moveTo(canvas_draw.width - this.x0 - i, canvas_draw.height - this.y0 - i); // back to origin point
@@ -1039,7 +1039,7 @@ if (window.addEventListener) {
                     // mouse position
                     context_draw.beginPath();
                     context_draw.moveTo(x0 + i, y0 + i); // first point
-                    for (var j = 1; j < nbPoints; j++) {
+                    for (let j = 1; j < nbPoints; j++) {
                         const [xj, yj] = this.points[j];
                         context_draw.lineTo(xj + i, yj + i); // 2nd to (n-1)th point(s)
                     }
@@ -1052,7 +1052,7 @@ if (window.addEventListener) {
                         || symmetry == "horizontal_vertical") {
                         context_draw.beginPath();
                         context_draw.moveTo(canvas_draw.width - x0 - i, y0 + i); // first point
-                        for (var j = 1; j < nbPoints; j++) {
+                        for (let j = 1; j < nbPoints; j++) {
                             const [xj, yj] = this.points[j];
                             context_draw.lineTo(canvas_draw.width - xj - i, yj + i); // 2nd to (n-1)th point(s)
                         }
@@ -1501,9 +1501,9 @@ if (window.addEventListener) {
             var w = canvas_img.width;
             var h = canvas_img.height;
             var nbColors = forecolor_cycle.length;
-            for (var x = 0; x < w; x++) {
-                for (var y = 0; y < h; y++) {
-                    for (var i = 0; i < nbColors; i++) {
+            for (let x = 0; x < w; x++) {
+                for (let y = 0; y < h; y++) {
+                    for (let i = 0; i < nbColors; i++) {
                         if (PixelFunctions.pixelHasColor(pix, w, x, y, forecolor_cycle[i]))
                             PixelFunctions.pixelSetColor(pix_cycle, w, x, y, forecolor_cycle[(i + 1) % nbColors]);
                     }

@@ -8,7 +8,7 @@ export function imgInvert(context_img, canvas_img) {
     var pix = imgd.data;
     //alert(pix.length);
     // loop over each pixel and invert the color
-    for (var i = 0, n = pix.length; i < n; i += 4) {
+    for (let i = 0, n = pix.length; i < n; i += 4) {
         pix[i] = 255 - pix[i]; // red
         pix[i + 1] = 255 - pix[i + 1]; // green
         pix[i + 2] = 255 - pix[i + 2]; // blue
@@ -47,7 +47,7 @@ export function imgFill4(context_img, canvas_img, x0, y0, forecolorStr) {
             while (xE < w && PixelFunctions.pixelHasColor(pix, w, xE, y, rgbBase))
                 xE++;
             // fill found east and west pixels and check north and south pixels
-            for (var xCur = xW; xCur <= xE; xCur++) {
+            for (let xCur = xW; xCur <= xE; xCur++) {
                 // fill
                 PixelFunctions.pixelSetColor(pix, w, xCur, y, rgbFill);
                 // check if north pixel must be processed

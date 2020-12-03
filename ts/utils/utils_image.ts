@@ -12,7 +12,7 @@ export function imgInvert(context_img: CanvasRenderingContext2D, canvas_img: HTM
     //alert(pix.length);
 
     // loop over each pixel and invert the color
-    for (var i = 0, n = pix.length; i < n; i += 4) {
+    for (let i = 0, n = pix.length; i < n; i += 4) {
         pix[i  ] = 255 - pix[i  ]; // red
         pix[i+1] = 255 - pix[i+1]; // green
         pix[i+2] = 255 - pix[i+2]; // blue
@@ -65,7 +65,7 @@ export function imgFill4(context_img: CanvasRenderingContext2D, canvas_img: HTML
                 xE++;
             
             // fill found east and west pixels and check north and south pixels
-            for (var xCur = xW; xCur <= xE; xCur++)
+            for (let xCur = xW; xCur <= xE; xCur++)
             {
                 // fill
                 PixelFunctions.pixelSetColor(pix, w, xCur, y, rgbFill);
