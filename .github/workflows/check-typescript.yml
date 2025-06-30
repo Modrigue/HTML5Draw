@@ -22,5 +22,8 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-bin-links
 
+      - name: Install TypeScript
+        run: npm install typescript --no-bin-links
+
       - name: TypeScript compile check
-        run: npx tsc --noEmit
+        run: tsc --noEmit
