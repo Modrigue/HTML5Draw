@@ -292,8 +292,11 @@ if (window.addEventListener) {
             //console.log(ev.key)
             use_grid = false;
         }
-        // computes mouse coordinates given grid parameters
-        function compute_coords(x, y) {
+        // computes mouse coordinates given grid parameters, now using event and canvas
+        function compute_coords_from_event(ev, canvas) {
+            const rect = canvas.getBoundingClientRect();
+            let x = ev.clientX - rect.left;
+            let y = ev.clientY - rect.top;
             let x_new = -1;
             let y_new = -1;
             if (use_grid) {
@@ -310,6 +313,7 @@ if (window.addEventListener) {
                 x_new = x;
                 y_new = y;
             }
+            //console.log(x_new, y_new);
             return [x_new, y_new];
         }
         // this object holds the implementation of each drawing tool
@@ -326,7 +330,7 @@ if (window.addEventListener) {
             hasPoint0: false, nbPointsClicked: -1,
             points: [],
             mousedown(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 context_draw.strokeStyle = forecolor;
                 context_draw.fillStyle = forecolor;
@@ -339,7 +343,7 @@ if (window.addEventListener) {
             },
             mousemove(ev) {
                 // TODO: handle borders
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // // experimental: color animation cycle
                 // context_draw.strokeStyle = pixelRGBToHex(forecolor_cycle[index_cycle]);
                 // context_draw.fillStyle = pixelRGBToHex(forecolor_cycle[index_cycle]);
@@ -436,7 +440,7 @@ if (window.addEventListener) {
             hasPoint0: false, nbPointsClicked: -1,
             points: [],
             mousedown(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 context_draw.fillStyle = forecolor;
                 this.hasClicked = true;
@@ -444,7 +448,7 @@ if (window.addEventListener) {
             },
             mousemove(ev) {
                 // TODO: handle borders
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor
                 if (!this.hasClicked) {
                     CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -511,14 +515,14 @@ if (window.addEventListener) {
             mousedown(ev) {
                 context_draw.strokeStyle = forecolor;
                 if (!this.hasPoint0) {
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     this.x0 = this.xCurr;
                     this.y0 = this.yCurr;
                 }
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -609,13 +613,13 @@ if (window.addEventListener) {
                 context_draw.strokeStyle = forecolor;
                 //if (!this.hasPoint0)
                 {
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     this.points.push([this.xCurr, this.yCurr]);
                 }
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and no point set
                 if (!this.hasClicked && this.points.length == 0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -732,13 +736,13 @@ if (window.addEventListener) {
                 context_draw.strokeStyle = forecolor;
                 //if (!this.hasPoint0)
                 {
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     this.points.push([this.xCurr, this.yCurr]);
                 }
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and no point set
                 if (!this.hasClicked && this.points.length == 0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -858,14 +862,14 @@ if (window.addEventListener) {
             mousedown(ev) {
                 context_draw.strokeStyle = forecolor;
                 if (!this.hasPoint0) {
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     this.x0 = this.xCurr;
                     this.y0 = this.yCurr;
                 }
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -937,14 +941,14 @@ if (window.addEventListener) {
             mousedown(ev) {
                 context_draw.fillStyle = forecolor;
                 if (!this.hasPoint0) {
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     this.x0 = this.xCurr;
                     this.y0 = this.yCurr;
                 }
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -1017,13 +1021,13 @@ if (window.addEventListener) {
                 context_draw.strokeStyle = forecolor;
                 //if (!this.hasPoint0)
                 {
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     this.points.push([this.xCurr, this.yCurr]);
                 }
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and no point set
                 if (!this.hasClicked && this.points.length == 0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -1145,14 +1149,14 @@ if (window.addEventListener) {
                 //context_draw.fillStyle = forecolor;
                 if (!this.hasPoint0) {
                     // circle center
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     this.x0 = this.xCurr;
                     this.y0 = this.yCurr;
                 }
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -1240,14 +1244,14 @@ if (window.addEventListener) {
                 context_draw.fillStyle = forecolor;
                 if (!this.hasPoint0) {
                     // circle center
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     this.x0 = this.xCurr;
                     this.y0 = this.yCurr;
                 }
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and origin point not set
                 if (!this.hasClicked && !this.hasPoint0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -1332,7 +1336,7 @@ if (window.addEventListener) {
             points: [],
             mousedown(ev) {
                 context_draw.strokeStyle = forecolor;
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 switch (this.nbPointsClicked) {
                     case 0:
                         this.x0 = this.xCurr;
@@ -1346,7 +1350,7 @@ if (window.addEventListener) {
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // show cursor if no click and first point not set
                 if (!this.hasClicked && this.nbPointsClicked == 0) {
                     CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
@@ -1419,7 +1423,7 @@ if (window.addEventListener) {
                 if (this.hasClicked) {
                     this.hasClicked = false;
                     //console.log("this.nbPointsClicked = " + this.nbPointsClicked + " , " + this.hasMoved);
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     switch (this.nbPointsClicked) {
                         case 0:
                             if (this.hasMoved) {
@@ -1467,14 +1471,14 @@ if (window.addEventListener) {
                 this.hasClicked = true;
             },
             mousemove(ev) {
-                [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 CursorFunctions.cursorDrawFill(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor);
                 // TODO: handle mirroring?
             },
             mouseup(ev) {
                 if (this.hasClicked) {
                     this.hasClicked = false;
-                    [this.xCurr, this.yCurr] = compute_coords(ev.x, ev.y);
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     ImageFunctions.imgFill4(context_img, canvas_img, this.xCurr, this.yCurr, forecolor);
                 }
             },
