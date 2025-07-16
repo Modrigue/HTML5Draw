@@ -193,6 +193,10 @@ if (window.addEventListener) {
             canvas_draw.addEventListener('mouseup', ev_canvas, false);
             canvas_draw.addEventListener('mouseout', ev_canvas, false);
             canvas_draw.addEventListener("dblclick", ev_canvas, false);
+            canvas_draw.addEventListener('touchstart', function (ev) { ev.preventDefault(); ev_canvas(ev as unknown as MouseEvent); }, { passive: false });
+            canvas_draw.addEventListener('touchmove', function (ev) { ev.preventDefault(); ev_canvas(ev as unknown as MouseEvent); }, { passive: false });
+            canvas_draw.addEventListener('touchend', function (ev) { ev.preventDefault(); ev_canvas(ev as unknown as MouseEvent); }, { passive: false });
+            canvas_draw.addEventListener('touchcancel', function (ev) { ev.preventDefault(); ev_canvas(ev as unknown as MouseEvent); }, { passive: false });
 
             document.addEventListener("keydown", on_keydown, false);
             document.addEventListener("keyup", on_keyup, false);
@@ -202,7 +206,7 @@ if (window.addEventListener) {
         ////////////////////////////////// CALLBACKS ////////////////////////////////
 
         // general-purpose event handler
-        function ev_canvas(ev: MouseEvent) {
+        function ev_canvas(ev: MouseEvent | TouchEvent) {
             // not standard
             // // determine mouse position relative to the canvas element
             // if (ev.layerX || ev.layerX == 0)	// Firefox
@@ -218,23 +222,26 @@ if (window.addEventListener) {
             //}
 
             // call the corresponding event handler of the tool
-            switch (ev.type) {
+            let type = ev.type;
+            if (type.startsWith('touch')) {
+                // Map touch events to mouse event types
+                if (type === 'touchstart') type = 'mousedown';
+                else if (type === 'touchmove') type = 'mousemove';
+                else if (type === 'touchend' || type === 'touchcancel') type = 'mouseup';
+            }
+            switch (type) {
                 case "mousedown":
                     toolCurrent.mousedown(ev);
                     break;
-
                 case "mousemove":
                     toolCurrent.mousemove(ev);
                     break;
-
                 case "mouseup":
                     toolCurrent.mouseup(ev);
                     break;
-
                 case "mouseout":
                     toolCurrent.mouseout(ev);
                     break;
-
                 case "dblclick":
                     toolCurrent.dblclick(ev);
                     break;
@@ -349,12 +356,33 @@ if (window.addEventListener) {
             use_grid = false;
         }
 
-        // computes mouse coordinates given grid parameters, now using event and canvas
-        function compute_coords_from_event(ev: MouseEvent, canvas: HTMLCanvasElement): [number, number] {
+        // Helper to get clientX/clientY from MouseEvent or TouchEvent
+        function getClientXY(ev: MouseEvent | TouchEvent): { x: number, y: number } {
+            if ((ev as TouchEvent).touches && (ev as TouchEvent).touches.length > 0) {
+                return {
+                    x: (ev as TouchEvent).touches[0].clientX,
+                    y: (ev as TouchEvent).touches[0].clientY
+                };
+            } else if ((ev as TouchEvent).changedTouches && (ev as TouchEvent).changedTouches.length > 0) {
+                return {
+                    x: (ev as TouchEvent).changedTouches[0].clientX,
+                    y: (ev as TouchEvent).changedTouches[0].clientY
+                };
+            } else {
+                return {
+                    x: (ev as MouseEvent).clientX,
+                    y: (ev as MouseEvent).clientY
+                };
+            }
+        }
+
+        // computes mouse/touch coordinates given grid parameters, now using event and canvas
+        function compute_coords_from_event(ev: MouseEvent | TouchEvent, canvas: HTMLCanvasElement): [number, number] {
             const rect = canvas.getBoundingClientRect();
-            // Scale mouse coordinates to canvas coordinates
-            let x = (ev.clientX - rect.left) * (canvas.width / rect.width);
-            let y = (ev.clientY - rect.top) * (canvas.height / rect.height);
+            const { x: clientX, y: clientY } = getClientXY(ev);
+            // Scale coordinates to canvas
+            let x = (clientX - rect.left) * (canvas.width / rect.width);
+            let y = (clientY - rect.top) * (canvas.height / rect.height);
             // Clamp to canvas bounds
             x = Math.max(0, Math.min(x, canvas.width));
             y = Math.max(0, Math.min(y, canvas.height));
@@ -374,7 +402,6 @@ if (window.addEventListener) {
                 x_new = x;
                 y_new = y;
             }
-            //console.log(x_new, y_new);
             return [x_new, y_new];
         }
 
@@ -398,11 +425,11 @@ if (window.addEventListener) {
 
             points: Array<[number, number]>;
 
-            mousedown(ev: MouseEvent): void;
-            mousemove(ev: MouseEvent): void;
-            mouseup(ev: MouseEvent): void;
-            mouseout(ev: MouseEvent): void;
-            dblclick(ev: MouseEvent): void;
+            mousedown(ev: MouseEvent | TouchEvent): void;
+            mousemove(ev: MouseEvent | TouchEvent): void;
+            mouseup(ev: MouseEvent | TouchEvent): void;
+            mouseout(ev: MouseEvent | TouchEvent): void;
+            dblclick(ev: MouseEvent | TouchEvent): void;
 
             cancel(): void;
         }
@@ -422,7 +449,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
@@ -438,7 +465,7 @@ if (window.addEventListener) {
                     this.hasDrawnCursor = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     // TODO: handle borders
 
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
@@ -511,7 +538,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         //this.mousemove(ev);
                         this.hasClicked = false;
@@ -520,7 +547,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         this.hasClicked = false;
                         this.hasDrawnCursor = false;
@@ -530,7 +557,7 @@ if (window.addEventListener) {
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void {
                     this.hasClicked = false;
@@ -554,7 +581,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
@@ -564,7 +591,7 @@ if (window.addEventListener) {
                     // TODO: stipple at idle
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     // TODO: handle borders
 
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
@@ -603,7 +630,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         //this.mousemove(ev);
                         this.hasClicked = false;
@@ -612,7 +639,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         this.hasClicked = false;
                         this.hasDrawnCursor = false;
@@ -622,7 +649,7 @@ if (window.addEventListener) {
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void {
                     this.hasClicked = false;
@@ -645,7 +672,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.strokeStyle = forecolor;
                     if (!this.hasPoint0) {
                         [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
@@ -656,7 +683,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and origin point not set
@@ -714,7 +741,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         this.hasClicked = false;
 
@@ -732,12 +759,12 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && !this.hasPoint0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void {
                     //console.log("clear line tool");
@@ -763,7 +790,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.strokeStyle = forecolor;
                     //if (!this.hasPoint0)
                     {
@@ -773,7 +800,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and no point set
@@ -846,7 +873,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         /*this.hasClicked = false;
                     
@@ -866,7 +893,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                dblclick(ev: MouseEvent): void {
+                dblclick(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         img_update();
                         this.hasClicked = false;
@@ -876,7 +903,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && this.points.length == 0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
@@ -905,7 +932,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.strokeStyle = forecolor;
                     //if (!this.hasPoint0)
                     {
@@ -915,7 +942,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and no point set
@@ -992,7 +1019,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         /*this.hasClicked = false;
                     
@@ -1012,7 +1039,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                dblclick(ev: MouseEvent): void {
+                dblclick(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         img_update();
                         this.hasClicked = false;
@@ -1022,7 +1049,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && this.points.length == 0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
@@ -1051,7 +1078,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.strokeStyle = forecolor;
                     if (!this.hasPoint0) {
                         [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
@@ -1061,7 +1088,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and origin point not set
@@ -1110,7 +1137,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         this.hasClicked = false;
 
@@ -1127,12 +1154,12 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && !this.hasPoint0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void {
                     this.hasClicked = false;
@@ -1157,7 +1184,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.fillStyle = forecolor;
                     if (!this.hasPoint0) {
                         [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
@@ -1167,7 +1194,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and origin point not set
@@ -1216,7 +1243,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         this.hasClicked = false;
 
@@ -1233,12 +1260,12 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && !this.hasPoint0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void {
                     this.hasClicked = false;
@@ -1263,7 +1290,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.strokeStyle = forecolor;
                     //if (!this.hasPoint0)
                     {
@@ -1273,7 +1300,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and no point set
@@ -1350,7 +1377,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         /*this.hasClicked = false;
                     
@@ -1370,7 +1397,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                dblclick(ev: MouseEvent): void {
+                dblclick(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         img_update();
                         this.hasClicked = false;
@@ -1380,7 +1407,7 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && this.points.length == 0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
@@ -1409,7 +1436,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.strokeStyle = forecolor;
                     //context_draw.fillStyle = forecolor;
                     if (!this.hasPoint0) {
@@ -1421,7 +1448,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and origin point not set
@@ -1477,7 +1504,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         //console.log("Mouse has clicked");
                         this.hasClicked = false;
@@ -1495,12 +1522,12 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && !this.hasPoint0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void {
                     this.hasClicked = false;
@@ -1525,7 +1552,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: -1,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.fillStyle = forecolor;
                     if (!this.hasPoint0) {
                         // circle center
@@ -1536,7 +1563,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and origin point not set
@@ -1591,7 +1618,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         //console.log("Mouse has clicked");
                         this.hasClicked = false;
@@ -1609,12 +1636,12 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && !this.hasPoint0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void {
                     this.hasClicked = false;
@@ -1639,7 +1666,7 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: 0,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     context_draw.strokeStyle = forecolor;
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     switch (this.nbPointsClicked) {
@@ -1656,7 +1683,7 @@ if (window.addEventListener) {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
 
                     // show cursor if no click and first point not set
@@ -1737,7 +1764,7 @@ if (window.addEventListener) {
                     this.hasMoved = true;
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         this.hasClicked = false;
                         //console.log("this.nbPointsClicked = " + this.nbPointsClicked + " , " + this.hasMoved);
@@ -1768,12 +1795,12 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void {
+                mouseout(ev: MouseEvent | TouchEvent): void {
                     if (!this.hasClicked && this.nbPointsClicked == 0)
                         context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void {
                     this.hasClicked = false;
@@ -1798,18 +1825,18 @@ if (window.addEventListener) {
                 hasPoint0: false, nbPointsClicked: 0,
                 points: [],
 
-                mousedown(ev: MouseEvent): void {
+                mousedown(ev: MouseEvent | TouchEvent): void {
                     this.hasClicked = true;
                 },
 
-                mousemove(ev: MouseEvent): void {
+                mousemove(ev: MouseEvent | TouchEvent): void {
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                     CursorFunctions.cursorDrawFill(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor);
 
                     // TODO: handle mirroring?
                 },
 
-                mouseup(ev: MouseEvent): void {
+                mouseup(ev: MouseEvent | TouchEvent): void {
                     if (this.hasClicked) {
                         this.hasClicked = false;
                         [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
@@ -1817,9 +1844,9 @@ if (window.addEventListener) {
                     }
                 },
 
-                mouseout(ev: MouseEvent): void { },
+                mouseout(ev: MouseEvent | TouchEvent): void { },
 
-                dblclick(ev: MouseEvent): void { },
+                dblclick(ev: MouseEvent | TouchEvent): void { },
 
                 cancel(): void { }
             });

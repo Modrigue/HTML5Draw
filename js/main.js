@@ -163,6 +163,10 @@ if (window.addEventListener) {
             canvas_draw.addEventListener('mouseup', ev_canvas, false);
             canvas_draw.addEventListener('mouseout', ev_canvas, false);
             canvas_draw.addEventListener("dblclick", ev_canvas, false);
+            canvas_draw.addEventListener('touchstart', function (ev) { ev.preventDefault(); ev_canvas(ev); }, { passive: false });
+            canvas_draw.addEventListener('touchmove', function (ev) { ev.preventDefault(); ev_canvas(ev); }, { passive: false });
+            canvas_draw.addEventListener('touchend', function (ev) { ev.preventDefault(); ev_canvas(ev); }, { passive: false });
+            canvas_draw.addEventListener('touchcancel', function (ev) { ev.preventDefault(); ev_canvas(ev); }, { passive: false });
             document.addEventListener("keydown", on_keydown, false);
             document.addEventListener("keyup", on_keyup, false);
         }
@@ -183,7 +187,17 @@ if (window.addEventListener) {
             //    ev.y = ev.offsetY;
             //}
             // call the corresponding event handler of the tool
-            switch (ev.type) {
+            let type = ev.type;
+            if (type.startsWith('touch')) {
+                // Map touch events to mouse event types
+                if (type === 'touchstart')
+                    type = 'mousedown';
+                else if (type === 'touchmove')
+                    type = 'mousemove';
+                else if (type === 'touchend' || type === 'touchcancel')
+                    type = 'mouseup';
+            }
+            switch (type) {
                 case "mousedown":
                     toolCurrent.mousedown(ev);
                     break;
@@ -292,12 +306,34 @@ if (window.addEventListener) {
             //console.log(ev.key)
             use_grid = false;
         }
-        // computes mouse coordinates given grid parameters, now using event and canvas
+        // Helper to get clientX/clientY from MouseEvent or TouchEvent
+        function getClientXY(ev) {
+            if (ev.touches && ev.touches.length > 0) {
+                return {
+                    x: ev.touches[0].clientX,
+                    y: ev.touches[0].clientY
+                };
+            }
+            else if (ev.changedTouches && ev.changedTouches.length > 0) {
+                return {
+                    x: ev.changedTouches[0].clientX,
+                    y: ev.changedTouches[0].clientY
+                };
+            }
+            else {
+                return {
+                    x: ev.clientX,
+                    y: ev.clientY
+                };
+            }
+        }
+        // computes mouse/touch coordinates given grid parameters, now using event and canvas
         function compute_coords_from_event(ev, canvas) {
             const rect = canvas.getBoundingClientRect();
-            // Scale mouse coordinates to canvas coordinates
-            let x = (ev.clientX - rect.left) * (canvas.width / rect.width);
-            let y = (ev.clientY - rect.top) * (canvas.height / rect.height);
+            const { x: clientX, y: clientY } = getClientXY(ev);
+            // Scale coordinates to canvas
+            let x = (clientX - rect.left) * (canvas.width / rect.width);
+            let y = (clientY - rect.top) * (canvas.height / rect.height);
             // Clamp to canvas bounds
             x = Math.max(0, Math.min(x, canvas.width));
             y = Math.max(0, Math.min(y, canvas.height));
@@ -317,7 +353,6 @@ if (window.addEventListener) {
                 x_new = x;
                 y_new = y;
             }
-            //console.log(x_new, y_new);
             return [x_new, y_new];
         }
         // this object holds the implementation of each drawing tool
