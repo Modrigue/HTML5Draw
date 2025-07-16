@@ -352,8 +352,12 @@ if (window.addEventListener) {
         // computes mouse coordinates given grid parameters, now using event and canvas
         function compute_coords_from_event(ev: MouseEvent, canvas: HTMLCanvasElement): [number, number] {
             const rect = canvas.getBoundingClientRect();
-            let x = ev.clientX - rect.left;
-            let y = ev.clientY - rect.top;
+            // Scale mouse coordinates to canvas coordinates
+            let x = (ev.clientX - rect.left) * (canvas.width / rect.width);
+            let y = (ev.clientY - rect.top) * (canvas.height / rect.height);
+            // Clamp to canvas bounds
+            x = Math.max(0, Math.min(x, canvas.width));
+            y = Math.max(0, Math.min(y, canvas.height));
             let x_new: number = -1;
             let y_new: number = -1;
             if (use_grid) {
