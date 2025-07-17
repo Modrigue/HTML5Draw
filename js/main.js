@@ -370,36 +370,22 @@ if (window.addEventListener) {
                     const fakeEv = Object.assign({}, ev, { touches: [touch], changedTouches: [touch] });
                     switch (type) {
                         case 'mousedown':
-                            [this.xCurr, this.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
-                            this.xPrev = this.xCurr;
-                            this.yPrev = this.yCurr;
-                            context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
-                            context_draw.fillStyle = forecolor;
-                            this.hasClicked = true;
-                            // draw stipple cursor
-                            CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
-                            this.hasDrawnCursor = true;
+                            [state.xCurr, state.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
+                            state.hasClicked = true;
                             break;
                         case 'mousemove':
-                            [this.xCurr, this.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
-                            // show cursor
-                            if (!this.hasClicked) {
-                                CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
-                                return;
+                            [state.xCurr, state.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
+                            if (!state.hasClicked) {
+                                CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, state.xCurr, state.yCurr, forecolor, cursorsize, symmetry);
+                                break;
                             }
                             else {
-                                // remove cursor draw at first move
-                                if (this.hasDrawnCursor && !(this.xPrev == this.xCurr && this.yPrev == this.yCurr)) {
-                                    context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
-                                    this.hasDrawnCursor = false;
-                                }
-                                // draw stipple
                                 let nbPoints = Math.round(1 + Math.random() * cursorsize);
-                                for (let i = 0; i < nbPoints; i++) {
+                                for (let j = 0; j < nbPoints; j++) {
                                     const dist = Math.round(Math.random() * cursorsize / 2);
                                     const angle = Math.random() * 2 * Math.PI;
-                                    const xRand = this.xCurr + dist * Math.cos(angle);
-                                    const yRand = this.yCurr + dist * Math.sin(angle);
+                                    const xRand = state.xCurr + dist * Math.cos(angle);
+                                    const yRand = state.yCurr + dist * Math.sin(angle);
                                     context_draw.fillRect(xRand, yRand, 1, 1);
                                     if (symmetry == "vertical" || symmetry == "horizontal_vertical")
                                         context_draw.fillRect(canvas_draw.width - xRand, yRand, 1, 1);
@@ -408,14 +394,11 @@ if (window.addEventListener) {
                                     if (symmetry == "center" || symmetry == "horizontal_vertical")
                                         context_draw.fillRect(canvas_draw.width - xRand, canvas_draw.height - yRand, 1, 1);
                                 }
-                                this.xPrev = this.xCurr;
-                                this.yPrev = this.yCurr;
                             }
                             break;
                         case 'mouseup':
-                            if (this.hasClicked) {
-                                this.hasClicked = false;
-                                this.hasDrawnCursor = false;
+                            if (state.hasClicked) {
+                                state.hasClicked = false;
                                 img_update();
                             }
                             stippleActiveTouches.delete(id);
