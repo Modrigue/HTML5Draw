@@ -372,6 +372,21 @@ if (window.addEventListener) {
                         case 'mousedown':
                             [state.xCurr, state.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
                             state.hasClicked = true;
+                            // Draw stipple dot immediately on touch down
+                            let nbPointsDown = Math.round(1 + Math.random() * cursorsize);
+                            for (let j = 0; j < nbPointsDown; j++) {
+                                const dist = Math.round(Math.random() * cursorsize / 2);
+                                const angle = Math.random() * 2 * Math.PI;
+                                const xRand = state.xCurr + dist * Math.cos(angle);
+                                const yRand = state.yCurr + dist * Math.sin(angle);
+                                context_draw.fillRect(xRand, yRand, 1, 1);
+                                if (symmetry == "vertical" || symmetry == "horizontal_vertical")
+                                    context_draw.fillRect(canvas_draw.width - xRand, yRand, 1, 1);
+                                if (symmetry == "horizontal" || symmetry == "horizontal_vertical")
+                                    context_draw.fillRect(xRand, canvas_draw.height - yRand, 1, 1);
+                                if (symmetry == "center" || symmetry == "horizontal_vertical")
+                                    context_draw.fillRect(canvas_draw.width - xRand, canvas_draw.height - yRand, 1, 1);
+                            }
                             break;
                         case 'mousemove':
                             [state.xCurr, state.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
