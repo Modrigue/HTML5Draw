@@ -197,6 +197,8 @@ if (window.addEventListener) {
             function touchHandlerWrapper(ev: TouchEvent) {
                 if (toolCurrent === tools.get('pencil')) {
                     ev_canvas_multi(ev);
+                } else if (toolCurrent === tools.get('stipple')) {
+                    ev_canvas_multi_stipple(ev);
                 } else {
                     ev_canvas(ev);
                 }
@@ -358,6 +360,100 @@ if (window.addEventListener) {
                                 img_update();
                             }
                             pencilActiveTouches.delete(id);
+                            break;
+                    }
+                }
+            } else {
+                ev_canvas(ev);
+            }
+        }
+
+        // --- Multi-touch support for stipple tool ---
+        interface StippleTouchState {
+            xCurr: number; yCurr: number;
+            hasClicked: boolean;
+        }
+        let stippleActiveTouches: Map<number, StippleTouchState> = new Map();
+        function createStippleState(): StippleTouchState {
+            return {
+                xCurr: -1, yCurr: -1,
+                hasClicked: false
+            };
+        }
+        function ev_canvas_multi_stipple(ev: TouchEvent | MouseEvent) {
+            let type = ev.type;
+            if (type.startsWith('touch')) {
+                if (type === 'touchstart') type = 'mousedown';
+                else if (type === 'touchmove') type = 'mousemove';
+                else if (type === 'touchend' || type === 'touchcancel') type = 'mouseup';
+            }
+            // Only handle multi-touch for stipple tool
+            if (toolCurrent !== tools.get('stipple')) {
+                ev_canvas(ev);
+                return;
+            }
+            if ((ev as TouchEvent).touches || (ev as TouchEvent).changedTouches) {
+                const touches = (ev as TouchEvent).changedTouches || (ev as TouchEvent).touches;
+                for (let i = 0; i < touches.length; i++) {
+                    const touch = touches[i];
+                    const id = touch.identifier;
+                    let state = stippleActiveTouches.get(id);
+                    if (!state) {
+                        state = createStippleState();
+                        stippleActiveTouches.set(id, state);
+                    }
+                    // Wrap the touch as an event-like object for compute_coords_from_event
+                    const fakeEv = Object.assign({}, ev, { touches: [touch], changedTouches: [touch] });
+                    switch (type) {
+                        case 'mousedown':
+                            [this.xCurr, this.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
+                            this.xPrev = this.xCurr;
+                            this.yPrev = this.yCurr;
+                            context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
+                            context_draw.fillStyle = forecolor;
+                            this.hasClicked = true;
+                            // draw stipple cursor
+                            CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                            this.hasDrawnCursor = true;
+                            break;
+                        case 'mousemove':
+                            [this.xCurr, this.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
+                            // show cursor
+                            if (!this.hasClicked) {
+                                CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                                return;
+                            } else {
+                                // remove cursor draw at first move
+                                if (this.hasDrawnCursor && !(this.xPrev == this.xCurr && this.yPrev == this.yCurr)) {
+                                    context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
+                                    this.hasDrawnCursor = false;
+                                }
+                                // draw stipple
+                                let nbPoints: number = Math.round(1 + Math.random() * cursorsize);
+                                for (let i = 0; i < nbPoints; i++) {
+                                    const dist: number = Math.round(Math.random() * cursorsize / 2);
+                                    const angle: number = Math.random() * 2 * Math.PI;
+                                    const xRand: number = this.xCurr + dist * Math.cos(angle);
+                                    const yRand: number = this.yCurr + dist * Math.sin(angle);
+                                    context_draw.fillRect(xRand, yRand, 1, 1);
+                                    if (symmetry == "vertical" || symmetry == "horizontal_vertical")
+                                        context_draw.fillRect(canvas_draw.width - xRand, yRand, 1, 1);
+                                    if (symmetry == "horizontal" || symmetry == "horizontal_vertical")
+                                        context_draw.fillRect(xRand, canvas_draw.height - yRand, 1, 1);
+                                    if (symmetry == "center" || symmetry == "horizontal_vertical")
+                                        context_draw.fillRect(canvas_draw.width - xRand, canvas_draw.height - yRand, 1, 1);
+                                }
+                                this.xPrev = this.xCurr;
+                                this.yPrev = this.yCurr;
+                            }
+                            break;
+                        case 'mouseup':
+                            if (this.hasClicked) {
+                                this.hasClicked = false;
+                                this.hasDrawnCursor = false;
+                                img_update();
+                            }
+                            stippleActiveTouches.delete(id);
                             break;
                     }
                 }
@@ -697,51 +793,49 @@ if (window.addEventListener) {
                 points: [],
 
                 mousedown(ev: MouseEvent | TouchEvent): void {
+                    // If touch event, handled by ev_canvas_multi_stipple
+                    if ((ev as TouchEvent).touches && (ev as TouchEvent).touches.length > 0) return;
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
-
+                    this.xPrev = this.xCurr;
+                    this.yPrev = this.yCurr;
                     context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                     context_draw.fillStyle = forecolor;
                     this.hasClicked = true;
-
-                    // TODO: stipple at idle
+                    // draw stipple cursor
+                    CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                    this.hasDrawnCursor = true;
                 },
 
                 mousemove(ev: MouseEvent | TouchEvent): void {
-                    // TODO: handle borders
-
+                    if ((ev as TouchEvent).touches && (ev as TouchEvent).touches.length > 0) return;
                     [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
-
                     // show cursor
                     if (!this.hasClicked) {
                         CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
                         return;
-                    }
-                    else {
-                        // draw
-                        //nbPoints = cursorsize/2;
+                    } else {
+                        // remove cursor draw at first move
+                        if (this.hasDrawnCursor && !(this.xPrev == this.xCurr && this.yPrev == this.yCurr)) {
+                            context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
+                            this.hasDrawnCursor = false;
+                        }
+                        // draw stipple
                         let nbPoints: number = Math.round(1 + Math.random() * cursorsize);
                         for (let i = 0; i < nbPoints; i++) {
-                            // compute a random delta for position
                             const dist: number = Math.round(Math.random() * cursorsize / 2);
                             const angle: number = Math.random() * 2 * Math.PI;
                             const xRand: number = this.xCurr + dist * Math.cos(angle);
                             const yRand: number = this.yCurr + dist * Math.sin(angle);
-
-                            // mouse position
                             context_draw.fillRect(xRand, yRand, 1, 1);
-
-                            // draw x symmetric
                             if (symmetry == "vertical" || symmetry == "horizontal_vertical")
                                 context_draw.fillRect(canvas_draw.width - xRand, yRand, 1, 1);
-
-                            // draw y symmetric
                             if (symmetry == "horizontal" || symmetry == "horizontal_vertical")
                                 context_draw.fillRect(xRand, canvas_draw.height - yRand, 1, 1);
-
-                            // draw center symmetric
                             if (symmetry == "center" || symmetry == "horizontal_vertical")
                                 context_draw.fillRect(canvas_draw.width - xRand, canvas_draw.height - yRand, 1, 1);
                         }
+                        this.xPrev = this.xCurr;
+                        this.yPrev = this.yCurr;
                     }
                 },
 
