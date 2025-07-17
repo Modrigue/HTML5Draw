@@ -408,7 +408,8 @@ if (window.addEventListener) {
                         case 'mousedown':
                             [state.xCurr, state.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
                             state.hasClicked = true;
-                            // Draw stipple dot immediately on touch down
+                            // Set fillStyle to current forecolor for touch events
+                            context_draw.fillStyle = forecolor;
                             let nbPointsDown: number = Math.round(1 + Math.random() * cursorsize);
                             for (let j = 0; j < nbPointsDown; j++) {
                                 const dist: number = Math.round(Math.random() * cursorsize / 2);
@@ -426,6 +427,8 @@ if (window.addEventListener) {
                             break;
                         case 'mousemove':
                             [state.xCurr, state.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
+                            // Set fillStyle to current forecolor for touch events
+                            context_draw.fillStyle = forecolor;
                             if (!state.hasClicked) {
                                 CursorFunctions.cursorDrawStipple(context_draw, canvas_draw, state.xCurr, state.yCurr, forecolor, cursorsize, symmetry);
                                 break;
