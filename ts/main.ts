@@ -502,9 +502,9 @@ if (window.addEventListener) {
             //console.log('symmetry = ' + symmetry);
         }
 
-        function ev_forecolor_change(colorValue: Event) {
-            forecolor = this.value;
-            //console.log(this.value);
+        function ev_forecolor_change(ev: Event) {
+            forecolor = (ev.target as HTMLInputElement).value;
+            //console.log(forecolor);
         }
 
         function ev_backcolor_change(ev: Event) {
