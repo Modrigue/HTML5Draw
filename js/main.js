@@ -163,10 +163,19 @@ if (window.addEventListener) {
             canvas_draw.addEventListener('mouseup', ev_canvas, false);
             canvas_draw.addEventListener('mouseout', ev_canvas, false);
             canvas_draw.addEventListener("dblclick", ev_canvas, false);
-            canvas_draw.addEventListener('touchstart', function (ev) { ev.preventDefault(); ev_canvas(ev); }, { passive: false });
-            canvas_draw.addEventListener('touchmove', function (ev) { ev.preventDefault(); ev_canvas(ev); }, { passive: false });
-            canvas_draw.addEventListener('touchend', function (ev) { ev.preventDefault(); ev_canvas(ev); }, { passive: false });
-            canvas_draw.addEventListener('touchcancel', function (ev) { ev.preventDefault(); ev_canvas(ev); }, { passive: false });
+            // Use multi-touch handler for pencil tool, fallback to ev_canvas for others
+            function touchHandlerWrapper(ev) {
+                if (toolCurrent === tools.get('pencil')) {
+                    ev_canvas_multi(ev);
+                }
+                else {
+                    ev_canvas(ev);
+                }
+            }
+            canvas_draw.addEventListener('touchstart', function (ev) { ev.preventDefault(); touchHandlerWrapper(ev); }, { passive: false });
+            canvas_draw.addEventListener('touchmove', function (ev) { ev.preventDefault(); touchHandlerWrapper(ev); }, { passive: false });
+            canvas_draw.addEventListener('touchend', function (ev) { ev.preventDefault(); touchHandlerWrapper(ev); }, { passive: false });
+            canvas_draw.addEventListener('touchcancel', function (ev) { ev.preventDefault(); touchHandlerWrapper(ev); }, { passive: false });
             document.addEventListener("keydown", on_keydown, false);
             document.addEventListener("keyup", on_keyup, false);
         }
@@ -217,6 +226,110 @@ if (window.addEventListener) {
             /*var func = toolCurrent[ev.type];
             if (func)
                 func(ev);*/
+        }
+        let pencilActiveTouches = new Map();
+        function createPencilState() {
+            return {
+                xCurr: -1, yCurr: -1,
+                xPrev: -1, yPrev: -1,
+                hasClicked: false, hasDrawnCursor: false
+            };
+        }
+        function ev_canvas_multi(ev) {
+            let type = ev.type;
+            if (type.startsWith('touch')) {
+                if (type === 'touchstart')
+                    type = 'mousedown';
+                else if (type === 'touchmove')
+                    type = 'mousemove';
+                else if (type === 'touchend' || type === 'touchcancel')
+                    type = 'mouseup';
+            }
+            // Only handle multi-touch for pencil tool
+            if (toolCurrent !== tools.get('pencil')) {
+                ev_canvas(ev);
+                return;
+            }
+            if (ev.touches || ev.changedTouches) {
+                const touches = ev.changedTouches || ev.touches;
+                for (let i = 0; i < touches.length; i++) {
+                    const touch = touches[i];
+                    const id = touch.identifier;
+                    let state = pencilActiveTouches.get(id);
+                    if (!state) {
+                        state = createPencilState();
+                        pencilActiveTouches.set(id, state);
+                    }
+                    // Wrap the touch as an event-like object for compute_coords_from_event
+                    const fakeEv = Object.assign({}, ev, { touches: [touch], changedTouches: [touch] });
+                    switch (type) {
+                        case 'mousedown':
+                            [state.xCurr, state.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
+                            context_draw.strokeStyle = forecolor;
+                            context_draw.fillStyle = forecolor;
+                            state.xPrev = state.xCurr;
+                            state.yPrev = state.yCurr;
+                            state.hasClicked = true;
+                            CursorFunctions.cursorDraw(context_draw, canvas_draw, state.xCurr, state.yCurr, forecolor, cursorsize, symmetry, true);
+                            state.hasDrawnCursor = true;
+                            break;
+                        case 'mousemove':
+                            [state.xCurr, state.yCurr] = compute_coords_from_event(fakeEv, canvas_draw);
+                            if (!state.hasClicked) {
+                                CursorFunctions.cursorDraw(context_draw, canvas_draw, state.xCurr, state.yCurr, forecolor, cursorsize, symmetry);
+                                break;
+                            }
+                            else {
+                                if (state.hasDrawnCursor && !(state.xPrev == state.xCurr && state.yPrev == state.yCurr)) {
+                                    context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
+                                    state.hasDrawnCursor = false;
+                                }
+                                for (let j = -cursorsize / 2; j <= cursorsize / 2; j++) {
+                                    context_draw.beginPath();
+                                    context_draw.moveTo(state.xPrev + j, state.yPrev + j);
+                                    context_draw.lineTo(state.xCurr + j, state.yCurr + j);
+                                    context_draw.stroke();
+                                    context_draw.closePath();
+                                    if (symmetry == "vertical" || symmetry == "horizontal_vertical") {
+                                        context_draw.beginPath();
+                                        context_draw.moveTo(canvas_draw.width - state.xPrev - j, state.yPrev + j);
+                                        context_draw.lineTo(canvas_draw.width - state.xCurr - j, state.yCurr + j);
+                                        context_draw.stroke();
+                                        context_draw.closePath();
+                                    }
+                                    if (symmetry == "horizontal" || symmetry == "horizontal_vertical") {
+                                        context_draw.beginPath();
+                                        context_draw.moveTo(state.xPrev + j, canvas_draw.height - state.yPrev - j);
+                                        context_draw.lineTo(state.xCurr + j, canvas_draw.height - state.yCurr - j);
+                                        context_draw.stroke();
+                                        context_draw.closePath();
+                                    }
+                                    if (symmetry == "center" || symmetry == "horizontal_vertical") {
+                                        context_draw.beginPath();
+                                        context_draw.moveTo(canvas_draw.width - state.xPrev - j, canvas_draw.height - state.yPrev - j);
+                                        context_draw.lineTo(canvas_draw.width - state.xCurr - j, canvas_draw.height - state.yCurr - j);
+                                        context_draw.stroke();
+                                        context_draw.closePath();
+                                    }
+                                }
+                                state.xPrev = state.xCurr;
+                                state.yPrev = state.yCurr;
+                            }
+                            break;
+                        case 'mouseup':
+                            if (state.hasClicked) {
+                                state.hasClicked = false;
+                                state.hasDrawnCursor = false;
+                                img_update();
+                            }
+                            pencilActiveTouches.delete(id);
+                            break;
+                    }
+                }
+            }
+            else {
+                ev_canvas(ev);
+            }
         }
         // clear image
         function ev_clear( /*ev: Event*/) {
@@ -369,6 +482,9 @@ if (window.addEventListener) {
             hasPoint0: false, nbPointsClicked: -1,
             points: [],
             mousedown(ev) {
+                // If touch event, handled by ev_canvas_multi
+                if (ev.touches && ev.touches.length > 0)
+                    return;
                 [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
                 context_draw.strokeStyle = forecolor;
@@ -381,6 +497,8 @@ if (window.addEventListener) {
                 this.hasDrawnCursor = true;
             },
             mousemove(ev) {
+                if (ev.touches && ev.touches.length > 0)
+                    return;
                 // TODO: handle borders
                 [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
                 // // experimental: color animation cycle
