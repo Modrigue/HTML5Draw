@@ -2061,6 +2061,105 @@ if (window.addEventListener) {
                 cancel(): void { }
             });
 
+        // ///////////////////////////////// ELLIPSE TOOL /////////////////////////////////
+        tools.set("ellipse",
+            {
+                xCurr: -1, yCurr: -1,
+                xPrev: -1, yPrev: -1,
+                x0: -1, y0: -1,
+                index_cycle: 0,
+
+                hasClicked: false, hasMoved: false,
+                hasDrawnCursor: false,
+                hasPoint0: false, nbPointsClicked: -1,
+                points: [],
+
+                mousedown(ev: MouseEvent | TouchEvent): void {
+                    context_draw.fillStyle = forecolor;
+                    if (!this.hasPoint0) {
+                        // ellipse start (corner)
+                        [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
+                        this.x0 = this.xCurr;
+                        this.y0 = this.yCurr;
+                    }
+                    this.hasClicked = true;
+                },
+
+                mousemove(ev: MouseEvent | TouchEvent): void {
+                    [this.xCurr, this.yCurr] = compute_coords_from_event(ev, canvas_draw);
+
+                    // show cursor if no click and origin point not set
+                    if (!this.hasClicked && !this.hasPoint0) {
+                        CursorFunctions.cursorDraw(context_draw, canvas_draw, this.xCurr, this.yCurr, forecolor, cursorsize, symmetry);
+                        return;
+                    }
+
+                    // nop if no move
+                    if (this.x0 == this.xCurr && this.y0 == this.yCurr)
+                        return;
+
+                    context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
+
+                    // Calculate ellipse bounding box
+                    const x = Math.min(this.x0, this.xCurr);
+                    const y = Math.min(this.y0, this.yCurr);
+                    const w = Math.abs(this.xCurr - this.x0);
+                    const h = Math.abs(this.yCurr - this.y0);
+                    context_draw.strokeStyle = forecolor;
+                    for (let i = -cursorsize / 2; i <= cursorsize / 2; i++) {
+                        // main ellipse
+                        context_draw.beginPath();
+                        context_draw.ellipse(x + w / 2 + i, y + h / 2 + i, Math.max(0, w / 2), Math.max(0, h / 2), 0, 0, 2 * Math.PI);
+                        context_draw.stroke();
+                        context_draw.closePath();
+                        // draw x symmetric
+                        if (symmetry == "vertical" || symmetry == "horizontal_vertical") {
+                            context_draw.beginPath();
+                            context_draw.ellipse(canvas_draw.width - (x + w / 2) - i, y + h / 2 + i, Math.max(0, w / 2), Math.max(0, h / 2), 0, 0, 2 * Math.PI);
+                            context_draw.stroke();
+                            context_draw.closePath();
+                        }
+                        // draw y symmetric
+                        if (symmetry == "horizontal" || symmetry == "horizontal_vertical") {
+                            context_draw.beginPath();
+                            context_draw.ellipse(x + w / 2 + i, canvas_draw.height - (y + h / 2) - i, Math.max(0, w / 2), Math.max(0, h / 2), 0, 0, 2 * Math.PI);
+                            context_draw.stroke();
+                            context_draw.closePath();
+                        }
+                        // draw center symmetric
+                        if (symmetry == "center" || symmetry == "horizontal_vertical") {
+                            context_draw.beginPath();
+                            context_draw.ellipse(canvas_draw.width - (x + w / 2) - i, canvas_draw.height - (y + h / 2) - i, Math.max(0, w / 2), Math.max(0, h / 2), 0, 0, 2 * Math.PI);
+                            context_draw.stroke();
+                            context_draw.closePath();
+                        }
+                    }
+                },
+
+                mouseup(ev: MouseEvent | TouchEvent): void {
+                    if (this.hasClicked) {
+                        this.hasClicked = false;
+                        img_update();
+                    }
+                },
+
+                mouseout(ev: MouseEvent | TouchEvent): void {
+                    if (this.hasClicked) {
+                        this.hasClicked = false;
+                        img_update();
+                    } else {
+                        context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
+                    }
+                },
+
+                dblclick(ev: MouseEvent | TouchEvent): void { },
+
+                cancel(): void {
+                    this.hasClicked = false;
+                    context_draw.clearRect(0, 0, canvas_draw.width, canvas_draw.height);
+                }
+            });
+
         init();
 
 
